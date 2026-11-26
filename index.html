@@ -26,6 +26,8 @@ button{font:inherit;cursor:pointer}
 .fb.ok{background:var(--ok)}.fb.no{background:var(--no)}
 .big{font-size:3rem;font-weight:700;color:var(--ac);text-align:center;margin:8px 0}
 .hide{display:none}
+.sign-box{display:flex;justify-content:center;margin:10px 0 14px}
+.sign-box svg{width:110px;height:100px;overflow:visible}
 </style>
 </head>
 <body>
@@ -34,9 +36,30 @@ button{font:inherit;cursor:pointer}
 </main>
 <script>
 var L=["ሀ","ለ","ሐ","መ"];
-// [question, [options], correctIndex]  — add more questions here in the same format
 var Q=[];
+
+function signSvg(kind){
+  if(!kind)return "";
+  var inner="";
+  if(kind==="pedestrian"){
+    inner='<circle cx="52" cy="40" r="4" fill="#111"/><path d="M52 45 L47 58 L42 72 M52 45 L58 56 L63 66 M50 49 L42 54 M52 49 L61 46" stroke="#111" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+  }else if(kind==="danger"){
+    inner='<rect x="49" y="38" width="6" height="22" rx="2" fill="#111"/><circle cx="52" cy="67" r="3.5" fill="#111"/>';
+  }else if(kind==="narrows"){
+    inner='<path d="M40 36 L44 74 M64 36 L60 74" stroke="#111" stroke-width="3.5" stroke-linecap="round" fill="none"/>';
+  }else if(kind==="curve"){
+    inner='<path d="M46 74 L46 54 C46 44 60 44 60 54 L60 40" stroke="#111" stroke-width="3.5" stroke-linecap="round" fill="none"/><path d="M55 45 L60 39 L65 45" stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+  }
+  if(!inner)return "";
+  return '<div class="sign-box"><svg viewBox="0 0 104 92"><polygon points="52,6 98,86 6,86" fill="#fff" stroke="#d92b2b" stroke-width="9" stroke-linejoin="round"/>'+inner+'</svg></div>';
+}
+
+// [question, [options], correctIndex, optionalSignKind]
 var ALL=[
+["ይህ የማስጠንቀቂያ ምልክት ምንን ያመለክታል?",["የሚከለክሉ ምልክቶች","የእግረኛ ማቋረጫ (Pedestrian crossing)","አስገዳጅ ምልክቶች","መረጃ ሰጪ ምልክቶች"],1,"pedestrian"],
+["ይህ የማስጠንቀቂያ ምልክት ምንን ያመለክታል?",["ከፊት ለፊት አጠቃላይ አደጋ ወይም ልዩ ጥንቃቄ የሚያስፈልግ ቦታ መኖሩን","የመኪና ማቆሚያ ቦታ መኖሩን","የፍጥነት ገደብ ማብቃቱን","የአንድ አቅጣጫ መንገድ መኖሩን"],0,"danger"],
+["ይህ የማስጠንቀቂያ ምልክት ምንን ያመለክታል?",["መንገድ ከሁለቱም ወገን እየጠበበ መሄዱን","የባቡር ሐዲድ ማቋረጫ መኖሩን","ሆስፒታል መኖሩን","መቅደም የተፈቀደ መሆኑን"],0,"narrows"],
+["ይህ የማስጠንቀቂያ ምልክት ምንን ያመለክታል?",["ቀጥተኛ ድልድይ","ሹል ኩርባ / የመንገድ መታጠፍ","የመኪና ማጠቢያ","የነዳጅ ማደያ"],1,"curve"],
 ["ቀይ ጠርዝ ባለው እኩል ጎን ሦስት ማዕዘን ቅርጽ ውስጥ የሚገኙ የትራፊክ ምልክቶች በምን ምድብ ይመደባሉ?",["የሚከለክሉ ምልክቶች","የማስጠንቀቂያ ምልክቶች","አስገዳጅ ምልክቶች","መረጃ ሰጪ ምልክቶች"],1],
 ["ቀይ ጠርዝና ነጭ መደብ ያላቸው ክብ ምልክቶች በአጠቃላይ ምንን ያመለክታሉ?",["ወደ አቅራቢያ ከተሞች የሚወስዱ አቅጣጫዎችን","አሽከርካሪው በግዴታ ማድረግ ያለበትን ተግባር","አሽከርካሪው ማክበር ያለበትን ክልከላ ወይም ገደብ","ከፊት ለፊት የመንገድ ጥገና መኖሩን"],2],
 ["ሙሉ ሰማያዊ መደብና ነጭ ምስል ያለው ክብ ምልክት ለአሽከርካሪው ምንን ይነግራል?",["አሽከርካሪው በጥብቅ እንዲፈጽም የሚገደድበትን ተግባር","በአካባቢው ነፃ የመኪና ማቆሚያ መኖሩን","በአቅራቢያ ሆስፒታል መኖሩን","መቅደም የተከለከለ መሆኑን"],0],
@@ -80,14 +103,9 @@ function welcome(){
  app.innerHTML=h;
  app.querySelectorAll('.opt').forEach(function(b){b.onclick=function(){var n=+b.dataset.n;Q=ALL.slice((n-1)*10,n*10);i=0;score=0;show();};});
 }
-function oldWelcome(){
- i=0;score=0;
- app.innerHTML='<h1>እንኳን ደህና መጡ!</h1><p>የኢትዮጵያ የመንጃ ፈቃድ የንድፈ ሐሳብ መለማመጃ ፈተና። ጥያቄዎች አንድ በአንድ ይቀርባሉ፤ ከመለሱ በኋላ ትክክለኛው መልስ ይታያል፤ በመጨረሻም ውጤትዎ ይገለጻል። ('+Q.length+' ጥያቄዎች)</p><button class="btn" id="go">ፈተናውን ጀምር</button>';
- document.getElementById("go").onclick=show;
-}
 function show(){
  locked=false;var q=Q[i];
- var h='<div class="meta"><span>ጥያቄ '+(i+1)+' / '+Q.length+'</span><span>ነጥብ: '+score+'</span></div><div class="bar"><i style="width:'+(i/Q.length*100)+'%"></i></div><h2 style="font-size:1.15rem;margin:0 0 8px">'+q[0]+'</h2>';
+ var h='<div class="meta"><span>ጥያቄ '+(i+1)+' / '+Q.length+'</span><span>ነጥብ: '+score+'</span></div><div class="bar"><i style="width:'+(i/Q.length*100)+'%"></i></div>'+signSvg(q[3])+'<h2 style="font-size:1.15rem;margin:0 0 8px">'+q[0]+'</h2>';
  q[1].forEach(function(o,k){h+='<button class="opt" data-k="'+k+'"><b>'+L[k]+')</b> '+o+'</button>';});
  h+='<div id="fb"></div><button class="btn hide" id="nx"></button>';
  app.innerHTML=h;
